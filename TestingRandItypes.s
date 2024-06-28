@@ -1,0 +1,16 @@
+addi s0,zero,-24
+slti s1,s0,25
+addi s0,zero,-26
+sltiu s1,s0,25
+xori s1,s0,1
+ori s1,s1,1
+andi s0,s0,0x7FF
+lb s1,0(s0)
+lbu s1,0(s0)
+lh s1,4(s0)
+lhu s1,0(s0)
+lw s1,0(s0)
+slli s0,s0,31
+srli s0,s0,31
+srai s0,s0,31
+ori s1,s1,1
