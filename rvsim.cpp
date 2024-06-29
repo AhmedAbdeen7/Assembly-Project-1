@@ -226,6 +226,27 @@ void instDecExec(unsigned int instWord)
 			cout << "\tUnkown I-type load Instruction \n";
 		}
 	}
+	else if (opcode == 0x23)
+	{
+		switch (funct3)
+		{
+		case 0:
+			cout << "\tSB\t" << abiName[rs1] << ", " << dec << (int)S_imm << "(" << abiName[rs2] << ")" << "\n";
+			memory[rs1] = reg[rs2 + (int)S_imm];
+
+		case 1:
+			cout << "\tSh\t" << abiName[rs1] << ", " << dec << (int)S_imm << "(" << abiName[rs2] << ")" << "\n";
+			memory[rs1] = reg[rs2 + (int)S_imm];
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
+
+		case 2:
+			cout << "\tSW\t" << abiName[rs1] << ", " << dec << (int)S_imm << "(" << abiName[rs2] << ")" << "\n";
+			memory[rs1] = reg[rs2 + (int)S_imm];
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 16);
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 24);
+		}
+	}
 	else
 	{
 		cout << "\tUnkown Instruction \n";
@@ -243,21 +264,36 @@ int main(int argc, char *argv[])
 {
 	unsigned int instWord = 0;
 	ifstream inFile;
+	ifstream dataFile;
 	ofstream outFile;
 
-	if (argc < 1)
-		emitError("use: rvcdiss <machine_code_file_name>\n");
+	if (argc < 2)
+		emitError("use: rvcdiss <machine_code_file_name> <data_section_file_name>\n");
 
 	inFile.open(argv[1], ios::in | ios::binary | ios::ate);
-
+	dataFile.open(argv[2], ios::in | ios::binary | ios::ate);
 	if (inFile.is_open())
 	{
 		int fsize = inFile.tellg();
 
 		inFile.seekg(0, inFile.beg);
 		if (!inFile.read((char *)memory, fsize))
-			emitError("Cannot read from input file\n");
+			emitError("Cannot read from text file\n");
+	}
 
+	if (dataFile.is_open())
+	{
+		int fsize = dataFile.tellg();
+
+		dataFile.seekg(0, dataFile.beg);
+		if (!dataFile.read((char *)(memory + 0x00010000), fsize)) // because data section starts at 0x00010000
+			emitError("Cannot read from data file\n");
+	}
+	else
+		emitError("Cannot access data file\n");
+
+	if (inFile.is_open())
+	{
 		while (true)
 		{
 			instWord = (unsigned char)memory[pc] |
@@ -273,5 +309,5 @@ int main(int argc, char *argv[])
 		printRegisterContents();
 	}
 	else
-		emitError("Cannot access input file\n");
+		emitError("Cannot access text file\n");
 }
