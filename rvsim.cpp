@@ -21,6 +21,7 @@ string abiName[32] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s
 					  "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5",
 					  "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
 unsigned char memory[(64 + 64) * 1024];
+void instDecExec(unsigned int instWord);
 
 void emitError(char *s)
 {
@@ -31,6 +32,66 @@ void emitError(char *s)
 void printPrefix(unsigned int instA, unsigned int instW)
 {
 	cout << "0x" << hex << std::setfill('0') << std::setw(8) << instA << "\t0x" << std::setw(8) << instW;
+}
+bool isCompressed(unsigned int instWord)
+{
+	unsigned int opcode = instWord & 0x00000003;
+	if (opcode == 0x3)
+	{
+		return false;
+	}
+	return true;
+}
+unsigned int deCompress(unsigned int instWord)
+{
+	// if (!isCompressed(instWord))
+	// {
+	// 	return;
+	// }
+	instWord = 0x00000114;
+	unsigned int rd, rs1, rs2, funct4, funct3, offset, op;
+	unsigned int CIW_imm, CL_imm;
+
+	op = instWord & 0x00000003;
+	funct3 = (instWord >> 13) & 0x00000007;
+	funct4 = (instWord >> 12) & 0x0000000F;
+	offset = (instWord >> 2) & 0x000007FF;
+	if (op == 0x0)
+	{ // CL-CS-CIW Formats
+		switch (funct3)
+		{
+		case 0:
+			// CIW - Format
+			rd = (instWord >> 2) & 0x00000007;
+			CIW_imm = (instWord >> 5) & 0x000000FF;
+			instWord = 0x00000013; // I-type, This is not entirely correct, To be Solved Later:/
+			rd = rd << 7;
+			instWord |= rd;
+			instWord |= 0x00000000;	 // ADDI
+			instWord |= 0x00010000;	 // sp ~x2
+			CIW_imm = CIW_imm << 2;	 // 4*imm
+			CIW_imm = CIW_imm << 20; // place imm[0] at bit 20
+			instWord |= CIW_imm;
+			instDecExec(instWord);
+
+			break;
+		case 2:
+			// CL - Format
+			rd = (instWord >> 2) & 0x00000007;
+			instWord = 0x00000003; // I-Type LOAD
+			rd = rd << 7;
+			instWord |= rd;
+			// Rest TBC
+
+			break;
+		case 6:
+			break;
+
+		default:
+			break;
+		}
+	}
+	return instWord;
 }
 
 void instDecExec(unsigned int instWord)
@@ -294,8 +355,10 @@ int main(int argc, char *argv[])
 
 	if (inFile.is_open())
 	{
+
 		while (true)
 		{
+			// deCompress(instWord);
 			instWord = (unsigned char)memory[pc] |
 					   (((unsigned char)memory[pc + 1]) << 8) |
 					   (((unsigned char)memory[pc + 2]) << 16) |
@@ -304,6 +367,7 @@ int main(int argc, char *argv[])
 			// remove the following line once you have a complete simulator
 			if ((pc > 16000) | (instWord == 0))
 				break; // stop when PC reached address 32
+
 			instDecExec(instWord);
 		}
 		printRegisterContents();
