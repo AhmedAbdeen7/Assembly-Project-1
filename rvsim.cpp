@@ -80,11 +80,11 @@ void instDecExec(unsigned int instWord)
 			break;
 		case 2:
 			cout << "\tSLT\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
-			reg[rd] = (reg[rs1] < reg[rs2]) ? 1 : 0;
+			reg[rd] = (int(reg[rs1]) < int(reg[rs2])) ? 1 : 0;
 			break;
 		case 3:
 			cout << "\tSLTU\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
-			reg[rd] = (static_cast<unsigned int>(reg[rs1]) < static_cast<unsigned int>(reg[rs2])) ? 1 : 0;
+			reg[rd] = (reg[rs1] < reg[rs2]) ? 1 : 0;
 			break;
 		case 4:
 			cout << "\tXOR\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
@@ -132,11 +132,28 @@ void instDecExec(unsigned int instWord)
 			break;
 		case 2:
 			cout << "\tSLTI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
-			reg[rd] = (reg[rs1] < int(I_imm)) ? 1 : 0;
+			if (int(reg[rs1]) < int(I_imm))
+			{
+				reg[rd] = 1;
+			}
+			else
+			{
+				reg[rd] = 0;
+			}
+
+			// reg[rd] = (reg[rs1] < reg[rs2]) ? 1 : 0;
 			break;
 		case 3:
 			cout << "\tSLTIU\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
-			reg[rd] = (static_cast<unsigned int>(reg[rs1]) < static_cast<unsigned int>(I_imm)) ? 1 : 0;
+			if (static_cast<unsigned int>(reg[rs1]) < static_cast<unsigned int>(I_imm))
+			{
+				reg[rd] = 1;
+			}
+			else
+			{
+				reg[rd] = 0;
+			}
+			// reg[rd] = (static_cast<unsigned int>(reg[rs1]) < static_cast<unsigned int>(I_imm)) ? 1 : 0;
 			break;
 		case 4:
 			cout << "\tXORI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
@@ -214,10 +231,16 @@ void instDecExec(unsigned int instWord)
 		cout << "\tUnkown Instruction \n";
 	}
 }
+void printRegisterContents()
+{
+	for (int i = 0; i < 32; i++)
+	{
+		cout << "x" << dec << i << "\t" << abiName[i] << "\t0x" << hex << reg[i] << "\n";
+	}
+}
 
 int main(int argc, char *argv[])
 {
-
 	unsigned int instWord = 0;
 	ifstream inFile;
 	ofstream outFile;
@@ -247,6 +270,7 @@ int main(int argc, char *argv[])
 				break; // stop when PC reached address 32
 			instDecExec(instWord);
 		}
+		printRegisterContents();
 	}
 	else
 		emitError("Cannot access input file\n");
