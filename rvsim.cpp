@@ -17,6 +17,9 @@ using namespace std;
 
 unsigned int pc;
 unsigned int reg[32] = {0};
+string abiName[32] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1",
+					  "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5",
+					  "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
 unsigned char memory[(64 + 64) * 1024];
 
 void emitError(char *s)
@@ -58,12 +61,12 @@ void instDecExec(unsigned int instWord)
 		case 0:
 			if (funct7 == 32)
 			{
-				cout << "\tSUB\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+				cout << "\tSUB\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 				reg[rd] = reg[rs1] - reg[rs2];
 			}
 			else if (funct7 == 0)
 			{
-				cout << "\tADD\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+				cout << "\tADD\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 				reg[rd] = reg[rs1] + reg[rs2];
 			}
 			else
@@ -72,30 +75,30 @@ void instDecExec(unsigned int instWord)
 			}
 			break;
 		case 1:
-			cout << "\tSLL\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+			cout << "\tSLL\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 			reg[rd] = reg[rs1] << reg[rs2];
 			break;
 		case 2:
-			cout << "\tSLT\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+			cout << "\tSLT\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 			reg[rd] = (reg[rs1] < reg[rs2]) ? 1 : 0;
 			break;
 		case 3:
-			cout << "\tSLTU\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+			cout << "\tSLTU\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 			reg[rd] = (static_cast<unsigned int>(reg[rs1]) < static_cast<unsigned int>(reg[rs2])) ? 1 : 0;
 			break;
 		case 4:
-			cout << "\tXOR\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+			cout << "\tXOR\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 			reg[rd] = reg[rs1] ^ reg[rs2];
 			break;
 		case 5:
 			if (funct7 == 32)
 			{
-				cout << "\tSRA\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+				cout << "\tSRA\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 				reg[rd] = reg[rs1] >> reg[rs2];
 			}
 			else if (funct7 == 0)
 			{
-				cout << "\tSRL\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+				cout << "\tSRL\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 				reg[rd] = static_cast<unsigned int>(reg[rs1]) >> reg[rs2];
 			}
 			else
@@ -104,11 +107,11 @@ void instDecExec(unsigned int instWord)
 			}
 			break;
 		case 6:
-			cout << "\tOR\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+			cout << "\tOR\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 			reg[rd] = reg[rs1] | reg[rs2];
 			break;
 		case 7:
-			cout << "\tAND\tx" << rd << ", x" << rs1 << ", x" << rs2 << "\n";
+			cout << "\tAND\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 			reg[rd] = reg[rs1] & reg[rs2];
 			break;
 		default:
@@ -120,34 +123,34 @@ void instDecExec(unsigned int instWord)
 		switch (funct3)
 		{
 		case 0:
-			cout << "\tADDI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
+			cout << "\tADDI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			reg[rd] = reg[rs1] + int(I_imm);
 			break;
 		case 1:
-			cout << "\tSLLI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)shamt << "\n";
+			cout << "\tSLLI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)shamt << "\n";
 			reg[rd] = reg[rs1] << int(I_imm);
 			break;
 		case 2:
-			cout << "\tSLTI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
+			cout << "\tSLTI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			reg[rd] = (reg[rs1] < int(I_imm)) ? 1 : 0;
 			break;
 		case 3:
-			cout << "\tSLTIU\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
+			cout << "\tSLTIU\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			reg[rd] = (static_cast<unsigned int>(reg[rs1]) < static_cast<unsigned int>(I_imm)) ? 1 : 0;
 			break;
 		case 4:
-			cout << "\tXORI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
+			cout << "\tXORI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			reg[rd] = reg[rs1] ^ int(I_imm);
 			break;
 		case 5:
 			if (funct7 == 32)
 			{
-				cout << "\tSRAI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)shamt << "\n";
+				cout << "\tSRAI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)shamt << "\n";
 				reg[rd] = reg[rs1] >> int(I_imm);
 			}
 			else if (funct7 == 0)
 			{
-				cout << "\tSRLI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)shamt << "\n";
+				cout << "\tSRLI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)shamt << "\n";
 				reg[rd] = static_cast<unsigned int>(reg[rs1]) >> int(I_imm);
 			}
 			else
@@ -157,12 +160,12 @@ void instDecExec(unsigned int instWord)
 			break;
 
 		case 6:
-			cout << "\tORI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
+			cout << "\tORI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			reg[rd] = reg[rs1] | int(I_imm);
 
 			break;
 		case 7:
-			cout << "\tANDI\tx" << rd << ", x" << rs1 << ", " << hex << "0x" << (int)I_imm << "\n";
+			cout << "\tANDI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			reg[rd] = reg[rs1] & int(I_imm);
 
 			break;
@@ -176,28 +179,28 @@ void instDecExec(unsigned int instWord)
 		switch (funct3)
 		{
 		case 0:
-			cout << "\tLB\tx" << rd << ", " << hex << "0x" << (int)I_imm << "(x" << rs1 << ")" << "\n";
+			cout << "\tLB\t" << abiName[rd] << ", " << dec << (int)I_imm << "(" << abiName[rs1] << ")" << "\n";
 			reg[rd] = memory[rs1 + (int)I_imm];
 			break;
 		case 1:
-			cout << "\tLH\tx" << rd << ", " << hex << "0x" << (int)I_imm << "(x" << rs1 << ")" << "\n";
+			cout << "\tLH\t" << abiName[rd] << ", " << dec << (int)I_imm << "(" << abiName[rs1] << ")" << "\n";
 			reg[rd] = memory[rs1 + (int)I_imm];
 			reg[rd] |= (memory[rs1 + (int)I_imm + 1] << 8);
 			break;
 		case 2:
-			cout << "\tLW\tx" << rd << ", " << hex << "0x" << (int)I_imm << "(x" << rs1 << ")" << "\n";
+			cout << "\tLW\t" << abiName[rd] << ", " << dec << (int)I_imm << "(" << abiName[rs1] << ")" << "\n";
 			reg[rd] = memory[rs1 + (int)I_imm];
 			reg[rd] |= (memory[rs1 + (int)I_imm + 1] << 8);
 			reg[rd] |= (memory[rs1 + (int)I_imm + 2] << 16);
 			reg[rd] |= (memory[rs1 + (int)I_imm + 3] << 24);
 			break;
 		case 4:
-			cout << "\tLBU\tx" << rd << ", " << hex << "0x" << (int)I_imm << "(x" << rs1 << ")" << "\n";
+			cout << "\tLBU\t" << abiName[rd] << ", " << dec << (int)I_imm << "(" << abiName[rs1] << ")" << "\n";
 			reg[rd] = static_cast<unsigned int>(memory[rs1 + (int)I_imm]);
 			reg[rd] &= 0x000000FF;
 			break;
 		case 5:
-			cout << "\tLHU\tx" << rd << ", " << hex << "0x" << (int)I_imm << "(x" << rs1 << ")" << "\n";
+			cout << "\tLHU\t" << abiName[rd] << ", " << dec << (int)I_imm << "(" << abiName[rs1] << ")" << "\n";
 			reg[rd] = static_cast<unsigned int>(memory[rs1 + (int)I_imm]) |
 					  (static_cast<unsigned int>(memory[rs1 + (int)I_imm + 1]) << 8);
 			reg[rd] &= 0x0000FFFF;
