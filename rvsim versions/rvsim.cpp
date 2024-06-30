@@ -6,7 +6,6 @@
     References:
     (1) The risc-v ISA Manual ver. 2.1 @ https://riscv.org/specifications/
     (2) https://github.com/michaeljclark/riscv-meta/blob/master/meta/opcodes
-    (3) https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 */
 
 #include <iostream>
@@ -113,14 +112,7 @@ void instDecExec(unsigned int instWord)
     // — inst[31] — inst[30:25] inst[24:21] inst[20]
     I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
     S_imm = ((instWord >> 7) & 0x1F) | ((instWord >> 20) & 0x3E0) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
-    // int imm4_0 = (instWord >> 7) & 0x1F;
-
-    // // Extract the upper 7 bits (bits 25-31)
-    // int imm11_5 = (instWord >> 25) & 0x7F;
-
-    // // Combine the two parts and sign-extend
-    // S_imm = (imm11_5 << 5) | imm4_0;
-    // // inst
+    U_imm = ((instWord >> 12)) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 
     printPrefix(instPC, instWord);
 
@@ -296,8 +288,38 @@ void instDecExec(unsigned int instWord)
             cout << "\tUnkown I-type load Instruction \n";
         }
     }
+    else if (opcode = 0x67)
+    { // JALR (I - Instruction)
+        cout << "\tJALR\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
+        reg[rd] = instPC + 4;
+        pc = rs1 + (int)I_imm;
+    }
+    else if (opcode = 0x73)
+
+    { // ecall (I -Instruction)
+        cout << "\tECALL\t";
+        if (reg[17] == 1)
+        {
+            cout << reg[10];
+        }
+        else if (reg[17] == 4)
+        {
+            int i = 0;
+
+            while (memory[reg[10] + i] != 0)
+            {
+                cout << (char)(memory[reg[10] + i]);
+                i++;
+            }
+            cout << endl;
+        }
+        else if (reg[17] == 10)
+        {
+            exit(0);
+        }
+    }
     else if (opcode == 0x23)
-    {
+    { // S-type Instructions
         switch (funct3)
         {
         case 0:
@@ -306,7 +328,7 @@ void instDecExec(unsigned int instWord)
             break;
 
         case 1:
-            cout << "\tSh\t" << abiName[rs2] << ", " << dec << (int)S_imm << "(" << abiName[rs1] << ")" << "\n";
+            cout << "\tSH\t" << abiName[rs2] << ", " << dec << (int)S_imm << "(" << abiName[rs1] << ")" << "\n";
             memory[rs1] = reg[rs2 + (int)S_imm];
             memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
             break;
@@ -322,6 +344,21 @@ void instDecExec(unsigned int instWord)
             cout << "\tUnkown I-type load Instruction \n";
         }
     }
+    else if (opcode == 0x37)
+    { // U-type Instruction (Load Upper Immediate)
+        cout << "\tLUI\t" << abiName[rd] << ", " << dec << (int)U_imm << "\n";
+        reg[rd] = U_imm << 12;
+    }
+    else if (opcode = 0x17)
+    { // U-type Instruction (Add Upper Immediate to PC)
+        cout << "\tAUPIC\t" << abiName[rd] << ", " << dec << (int)U_imm << "\n";
+        reg[rd] = pc + (U_imm << 12);
+    }
+    else if (opcode = 0x73)
+    { // ebreak (I -type)
+        cout << "\tEBREAK\t" << endl;
+    }
+
     else
     {
         cout << "\tUnkown Instruction \n";
