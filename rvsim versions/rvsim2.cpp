@@ -353,6 +353,7 @@ void instDecExec(unsigned int instWord)
 	else if(0x6F)
 	{
 		cout << "\tJAL\t" << abiName[rd] << ", " << J_imm << "\n" <<endl;
+		reg[rd] = instPC +4;
 		pc = instPC + J_imm;
 	}
 	else
