@@ -6,6 +6,7 @@
     References:
     (1) The risc-v ISA Manual ver. 2.1 @ https://riscv.org/specifications/
     (2) https://github.com/michaeljclark/riscv-meta/blob/master/meta/opcodes
+    (3) https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 */
 
 #include <iostream>
