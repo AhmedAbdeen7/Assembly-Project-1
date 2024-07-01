@@ -64,16 +64,15 @@ unsigned int deCompress(unsigned int instWord)
 			// CIW - Format
 			rd = (instWord >> 2) & 0x00000007;
 			CIW_imm = (instWord >> 5) & 0x000000FF;
-			instWord = 0x00000013; // I-type, This is not entirely correct, To be Solved Later:/
+			CIW_imm = (((CIW_imm & 0x02) >> 1) | ((CIW_imm & 0x01) << 1) | ((CIW_imm & 0x0C) << 4) | ((CIW_imm & 0x0F0) >> 2)) << 2;
+			instWord = 0x00000013; // I-type
 			rd = rd << 7;
 			instWord |= rd;
 			instWord |= 0x00000000;	 // ADDI
 			instWord |= 0x00010000;	 // sp ~x2
-			CIW_imm = CIW_imm << 2;	 // 4*imm
 			CIW_imm = CIW_imm << 20; // place imm[0] at bit 20
 			instWord |= CIW_imm;
 			instDecExec(instWord);
-
 			break;
 		case 2:
 			// CL - Format
