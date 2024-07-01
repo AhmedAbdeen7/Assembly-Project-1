@@ -113,6 +113,8 @@ void instDecExec(unsigned int instWord)
 	I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 	S_imm = ((instWord >> 7) & 0x1F) | ((instWord >> 20) & 0x3E0) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 	U_imm = ((instWord >> 12)) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
+	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (instWord & 0x80000000);
+	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 10) |  ((instWord & 0x100000) << 19) | ((instWord & 0x80000000) << 20);    
 	// inst
 
 	printPrefix(instPC, instWord);
