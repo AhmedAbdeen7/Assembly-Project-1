@@ -111,6 +111,8 @@ void instDecExec(unsigned int instWord)
 	shamt = (instWord >> 20) & 0x0000001F;
 	// — inst[31] — inst[30:25] inst[24:21] inst[20]
 	I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
+	S_imm = ((instWord >> 7) & 0x1F) | ((instWord >> 20) & 0x3E0) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
+	U_imm = ((instWord >> 12)) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 	// inst
 
 	printPrefix(instPC, instWord);
