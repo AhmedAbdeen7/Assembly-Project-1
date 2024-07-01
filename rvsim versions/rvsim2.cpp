@@ -49,8 +49,8 @@ unsigned int deCompress(unsigned int instWord)
 	// 	return;
 	// }
 	instWord = 0x00000114;
-	unsigned int rd, rs1, rs2, funct4, funct3, offset, op;
-	unsigned int CIW_imm, CL_imm;
+	unsigned int rd, rs1, rs2, funct4, funct3, offset, op, decompressed_instruction;
+	unsigned int CIW_imm, CL_imm,CS_imm_func;
 
 	op = instWord & 0x00000003;
 	funct3 = (instWord >> 13) & 0x00000007;
@@ -91,6 +91,27 @@ unsigned int deCompress(unsigned int instWord)
 			break;
 		}
 	}
+
+	else if (op == 0x1)
+	{
+		switch (funct3)
+		{ //C.AND
+		CS_imm_func= ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
+		case 0x4:
+		if(CS_imm_func == 0xF)
+			rd = (instWord >> 7) & 0x7;
+			rs1 = rd;
+			op = 0b0110011;
+			funct3 = 0x7;
+			rs2 = (instWord >> 2) & 0x7;
+			decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000); 
+			return decompressed_instruction;
+			break;
+		
+		default:
+			break;
+		}
+	}
 	return instWord;
 }
 
@@ -112,7 +133,7 @@ void instDecExec(unsigned int instWord)
 	// — inst[31] — inst[30:25] inst[24:21] inst[20]
 	I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
 	// inst
-	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (instWord & 0x80000000);
+	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (((instWord >> 31) & 0x1) << 12);
 	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 10) |  ((instWord & 0x100000) << 19) 
 			| ((instWord & 0x80000000) << 20);    
 
@@ -353,7 +374,6 @@ void instDecExec(unsigned int instWord)
 	else if(0x6F)
 	{
 		cout << "\tJAL\t" << abiName[rd] << ", " << J_imm << "\n" <<endl;
-		reg[rd] = instPC +4;
 		pc = instPC + J_imm;
 	}
 	else
