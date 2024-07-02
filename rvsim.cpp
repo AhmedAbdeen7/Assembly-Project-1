@@ -6,7 +6,6 @@
 	References:
 	(1) The risc-v ISA Manual ver. 2.1 @ https://riscv.org/specifications/
 	(2) https://github.com/michaeljclark/riscv-meta/blob/master/meta/opcodes
- 	(3) https://www.cs.sfu.ca/~ashriram/Courses/CS295/assets/notebooks/RISCV/RISCV_CARD.pdf
 */
 
 #include <iostream>
@@ -111,10 +110,6 @@ void instDecExec(unsigned int instWord)
 	shamt = (instWord >> 20) & 0x0000001F;
 	// — inst[31] — inst[30:25] inst[24:21] inst[20]
 	I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
-	S_imm = ((instWord >> 7) & 0x1F) | ((instWord >> 20) & 0x3E0) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
-	U_imm = ((instWord >> 12)) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
-	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (((instWord >> 31) & 0x1) << 12);
-	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 10) |  ((instWord & 0x100000) << 19) | ((instWord & 0x80000000) << 20);    
 	// inst
 
 	printPrefix(instPC, instWord);
@@ -291,125 +286,32 @@ void instDecExec(unsigned int instWord)
 			cout << "\tUnkown I-type load Instruction \n";
 		}
 	}
- else if (opcode == 0x67)
-    { // JALR (I - Instruction)
-        cout << "\tJALR\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
-        reg[rd] = instPC + 4;
-        pc = rs1 + (int)I_imm;
-    }
-    else if (opcode == 0x73)
-
-    { // ecall (I -Instruction)
-        cout << "\tECALL\t";
-        if (reg[17] == 1)
-        {
-            cout << reg[10];
-        }
-        else if (reg[17] == 4)
-        {
-            int i = 0;
-
-            while (memory[reg[10] + i] != 0)
-            {
-                cout << (char)(memory[reg[10] + i]);
-                i++;
-            }
-            cout << endl;
-        }
-        else if (reg[17] == 10)
-        {
-            exit(0);
-        }
-    }
-    else if (opcode == 0x23)
-    { // S-type Instructions
-        switch (funct3)
-        {
-        case 0:
-            cout << "\tSB\t" << abiName[rs2] << ", " << dec << (int)S_imm << "(" << abiName[rs1] << ")" << "\n";
-            memory[rs1] = reg[rs2 + (int)S_imm];
-            break;
-
-        case 1:
-            cout << "\tSH\t" << abiName[rs2] << ", " << dec << (int)S_imm << "(" << abiName[rs1] << ")" << "\n";
-            memory[rs1] = reg[rs2 + (int)S_imm];
-            memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
-            break;
-
-        case 2:
-            cout << "\tSW\t" << abiName[rs2] << ", " << dec << (int)S_imm << "(" << abiName[rs1] << ")" << "\n";
-            memory[rs1] = reg[rs2 + (int)S_imm];
-            memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
-            memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 16);
-            memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 24);
-            break;
-        default:
-            cout << "\tUnkown I-type load Instruction \n";
-        }
-    }
-    else if (opcode == 0x37)
-    { // U-type Instruction (Load Upper Immediate)
-        cout << "\tLUI\t" << abiName[rd] << ", " << dec << (int)U_imm << "\n";
-        reg[rd] = U_imm << 12;
-    }
-    else if (opcode == 0x17)
-    { // U-type Instruction (Add Upper Immediate to PC)
-        cout << "\tAUPIC\t" << abiName[rd] << ", " << dec << (int)U_imm << "\n";
-        reg[rd] = pc + (U_imm << 12);
-    }
-    else if (opcode == 0x73)
-    { // ebreak (I -type)
-        cout << "\tEBREAK\t" << endl;
-    }
-	else if (opcode == 0x63)
+	else if (opcode == 0x23)
 	{
 		switch (funct3)
 		{
 		case 0:
-			cout << "\tBEQ\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]==reg[rs2])
-			pc = instPC + B_imm;
-			break;
+			cout << "\tSB\t" << abiName[rs1] << ", " << dec << (int)S_imm << "(" << abiName[rs2] << ")" << "\n";
+			memory[rs1] = reg[rs2 + (int)S_imm];
+
 		case 1:
-			cout << "\tBNE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]!=reg[rs2])
-			pc = instPC + B_imm;
-			break;
-		case 4:
-			cout << "\tBLT\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]<reg[rs2])
-			pc = instPC + B_imm;
-			break;
-		case 5:
-			cout << "\tBGE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]>=reg[rs2])
-			pc = instPC + B_imm;
-			break;
-		case 6:
-			cout << "\tBLTU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(static_cast<unsigned>(reg[rs1]) < static_cast<unsigned>(reg[rs2]))
-			pc = instPC + B_imm;
-			break;
-		case 7:
-			cout << "\tBGEU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(static_cast<unsigned>(reg[rs1]) >= static_cast<unsigned>(reg[rs2]))
-			pc = instPC + B_imm;
-			break;												
-		default:
-			break;
+			cout << "\tSh\t" << abiName[rs1] << ", " << dec << (int)S_imm << "(" << abiName[rs2] << ")" << "\n";
+			memory[rs1] = reg[rs2 + (int)S_imm];
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
+
+		case 2:
+			cout << "\tSW\t" << abiName[rs1] << ", " << dec << (int)S_imm << "(" << abiName[rs2] << ")" << "\n";
+			memory[rs1] = reg[rs2 + (int)S_imm];
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 8);
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 16);
+			memory[rs1] |= (reg[rs2 + (int)S_imm + 1] << 24);
 		}
-	}
-	else if(opcode == 0x6F)
-	{
-		cout << "\tJAL\t" << abiName[rd] << ", " << J_imm << "\n" <<endl;
-		reg[rd] = instPC +4;
-		pc = instPC + J_imm;
 	}
 	else
 	{
 		cout << "\tUnkown Instruction \n";
 	}
-	reg[0]=0;
+	reg[0] = 0;
 }
 void printRegisterContents()
 {
