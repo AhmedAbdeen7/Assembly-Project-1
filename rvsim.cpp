@@ -291,13 +291,13 @@ void instDecExec(unsigned int instWord)
 			cout << "\tUnkown I-type load Instruction \n";
 		}
 	}
- else if (opcode = 0x67)
+ else if (opcode == 0x67)
     { // JALR (I - Instruction)
         cout << "\tJALR\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
         reg[rd] = instPC + 4;
         pc = rs1 + (int)I_imm;
     }
-    else if (opcode = 0x73)
+    else if (opcode == 0x73)
 
     { // ecall (I -Instruction)
         cout << "\tECALL\t";
@@ -352,12 +352,12 @@ void instDecExec(unsigned int instWord)
         cout << "\tLUI\t" << abiName[rd] << ", " << dec << (int)U_imm << "\n";
         reg[rd] = U_imm << 12;
     }
-    else if (opcode = 0x17)
+    else if (opcode == 0x17)
     { // U-type Instruction (Add Upper Immediate to PC)
         cout << "\tAUPIC\t" << abiName[rd] << ", " << dec << (int)U_imm << "\n";
         reg[rd] = pc + (U_imm << 12);
     }
-    else if (opcode = 0x73)
+    else if (opcode == 0x73)
     { // ebreak (I -type)
         cout << "\tEBREAK\t" << endl;
     }
@@ -399,7 +399,7 @@ void instDecExec(unsigned int instWord)
 			break;
 		}
 	}
-	else if(0x6F)
+	else if(opcode == 0x6F)
 	{
 		cout << "\tJAL\t" << abiName[rd] << ", " << J_imm << "\n" <<endl;
 		reg[rd] = instPC +4;
@@ -409,6 +409,7 @@ void instDecExec(unsigned int instWord)
 	{
 		cout << "\tUnkown Instruction \n";
 	}
+	reg[0]=0;
 }
 void printRegisterContents()
 {
