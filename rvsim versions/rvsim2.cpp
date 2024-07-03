@@ -50,7 +50,7 @@ unsigned int deCompress(unsigned int instWord)
 	// }
 	instWord = 0x00000114;
 	unsigned int rd, rs1, rs2, funct4, funct3, offset, op, decompressed_instruction;
-	unsigned int CIW_imm, CL_imm,CS_imm_func;
+	unsigned int CIW_imm, CL_imm, CS_imm_func;
 
 	op = instWord & 0x00000003;
 	funct3 = (instWord >> 13) & 0x00000007;
@@ -95,19 +95,19 @@ unsigned int deCompress(unsigned int instWord)
 	else if (op == 0x1)
 	{
 		switch (funct3)
-		{ //C.AND
-		CS_imm_func= ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
+		{ // C.AND
+			CS_imm_func = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
 		case 0x4:
-		if(CS_imm_func == 0xF)
-			rd = (instWord >> 7) & 0x7;
+			if (CS_imm_func == 0xF)
+				rd = (instWord >> 7) & 0x7;
 			rs1 = rd;
 			op = 0b0110011;
 			funct3 = 0x7;
 			rs2 = (instWord >> 2) & 0x7;
-			decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000); 
+			decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
 			return decompressed_instruction;
 			break;
-		
+
 		default:
 			break;
 		}
@@ -120,6 +120,12 @@ void instDecExec(unsigned int instWord)
 	unsigned int rd, rs1, rs2, shamt, funct3, funct7, opcode;
 	unsigned int I_imm, S_imm, B_imm, U_imm, J_imm;
 	unsigned int address;
+
+	I_imm = 0;
+	S_imm = 0;
+	B_imm = 0;
+	U_imm = 0;
+	J_imm = 0;
 
 	unsigned int instPC = pc - 4;
 
@@ -136,12 +142,9 @@ void instDecExec(unsigned int instWord)
 	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (((instWord >> 31) & 0x1) << 12);
 	if (B_imm >> 12)
 		B_imm |= 0xFFFFF000;
-	
-	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 10) |  ((instWord & 0x100000) << 19) 
-			| ((instWord & 0x80000000) << 20);    
+	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 11) | ((instWord >> 31) << 20) | ((instWord >> 20) << 11);
 	if (J_imm >> 20)
 		J_imm |= 0xFFF00000;
-
 	printPrefix(instPC, instWord);
 
 	if (opcode == 0x33)
@@ -343,42 +346,44 @@ void instDecExec(unsigned int instWord)
 		switch (funct3)
 		{
 		case 0:
-			cout << "\tBEQ\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]==reg[rs2])
-			pc = instPC + B_imm;
+			cout << "\tBEQ\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
+			if (reg[rs1] == reg[rs2])
+				pc = instPC + (int)B_imm;
 			break;
 		case 1:
-			cout << "\tBNE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]!=reg[rs2])
-			pc = instPC + B_imm;
+			cout << "\tBNE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
+			if (reg[rs1] != reg[rs2])
+				pc = instPC + (int)B_imm;
 			break;
 		case 4:
-			cout << "\tBLT\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]<reg[rs2])
-			pc = instPC + B_imm;
+			cout << "\tBLT\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
+			if (reg[rs1] < reg[rs2])
+				pc = instPC + (int)B_imm;
 			break;
 		case 5:
-			cout << "\tBGE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(reg[rs1]>=reg[rs2])
-			pc = instPC + B_imm;
+			cout << "\tBGE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
+			if (reg[rs1] >= reg[rs2])
+				pc = instPC + (int)B_imm;
 			break;
 		case 6:
-			cout << "\tBLTU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(static_cast<unsigned>(reg[rs1]) < static_cast<unsigned>(reg[rs2]))
-			pc = instPC + B_imm;
+			cout << "\tBLTU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
+			if (static_cast<unsigned>(reg[rs1]) < static_cast<unsigned>(reg[rs2]))
+				pc = instPC + (int)B_imm;
 			break;
 		case 7:
-			cout << "\tBGEU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
-			if(static_cast<unsigned>(reg[rs1]) >= static_cast<unsigned>(reg[rs2]))
-			pc = instPC + B_imm;
-			break;												
+			cout << "\tBGEU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
+			if (static_cast<unsigned>(reg[rs1]) >= static_cast<unsigned>(reg[rs2]))
+				pc = instPC + (int)B_imm;
+			break;
 		default:
 			break;
 		}
 	}
-	else if(0x6F)
+	else if (opcode == 0x6F)
 	{
-		cout << "\tJAL\t" << abiName[rd] << ", " << J_imm << "\n" <<endl;
+		cout << "\tJAL\t" << abiName[rd] << ", " << instPC + J_imm << "\n"
+			 << endl;
+		reg[rd] = instPC + 4;
 		pc = instPC + J_imm;
 	}
 	else
