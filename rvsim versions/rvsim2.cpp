@@ -50,7 +50,7 @@ unsigned int deCompress(unsigned int instWord)
 	// }
 	instWord = 0x00000114;
 	unsigned int rd, rs1, rs2, funct4, funct3, offset, op, decompressed_instruction;
-	unsigned int CIW_imm, CL_imm, CS_imm_func;
+	unsigned int CIW_imm, CL_imm, CS_imm_func, shift_imm, S_imm, CB_imm;
 
 	op = instWord & 0x00000003;
 	funct3 = (instWord >> 13) & 0x00000007;
@@ -84,7 +84,13 @@ unsigned int deCompress(unsigned int instWord)
 			// Rest TBC
 
 			break;
-		case 6:
+		case 6: // C.SW
+			op = 0b0100011;
+			funct3 = 0x2;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = (instWord >> 2) & 0x7;
+			S_imm = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
+			decompressed_instruction = op | (((S_imm * 4) & 0x1F) << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | ((S_imm >> 5) << 25) | (S_imm >> 4 ? 0xFE000000 : 0x00000000);
 			break;
 
 		default:
@@ -95,24 +101,110 @@ unsigned int deCompress(unsigned int instWord)
 	else if (op == 0x1)
 	{
 		switch (funct3)
-		{ // C.AND
+		{
 			CS_imm_func = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
 		case 0x4:
-			if (CS_imm_func == 0xF)
+
+			if (CS_imm_func == 0xF) // C.AND
+			{
 				rd = (instWord >> 7) & 0x7;
-			rs1 = rd;
-			op = 0b0110011;
-			funct3 = 0x7;
-			rs2 = (instWord >> 2) & 0x7;
-			decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
+				rs1 = rd;
+				op = 0b0110011;
+				funct3 = 0x7;
+				rs2 = (instWord >> 2) & 0x7;
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
+				return decompressed_instruction;
+			}
+
+			else if (CS_imm_func == 0xE) // C.OR
+			{
+				rd = (instWord >> 7) & 0x7;
+				rs1 = rd;
+				op = 0b0110011;
+				funct3 = 0x6;
+				rs2 = (instWord >> 2) & 0x7;
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
+
+				return decompressed_instruction;
+			}
+			else if (CS_imm_func == 0xD) // C.XOR
+			{
+				rd = (instWord >> 7) & 0x7;
+				rs1 = rd;
+				op = 0b0110011;
+				funct3 = 0x4;
+				rs2 = (instWord >> 2) & 0x7;
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
+
+				return decompressed_instruction;
+			}
+			else if (CS_imm_func == 0xC) // C.SUB
+			{
+				rd = (instWord >> 7) & 0x7;
+				rs1 = rd;
+				op = 0b0110011;
+				funct3 = 0x0;
+				rs2 = (instWord >> 2) & 0x7;
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x40000000);
+
+				return decompressed_instruction;
+			}
+			else if (((instWord >> 10) & 0x3) == 0) // C.SRLI
+			{
+				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rd = rs1;
+				op = 0b0010011;
+				funct3 = 0x5;
+				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20);
+
+				return decompressed_instruction;
+			}
+			else if (((instWord >> 10) & 0x3) == 0b01) // C.SRAI
+			{
+				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rd = rs1;
+				op = 0b0010011;
+				funct3 = 0x5;
+				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20) | 0x20000000;
+
+				return decompressed_instruction;
+			}
+			else if (((instWord >> 10) & 0x3) == 10) // C.ANDI
+			{
+				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rd = rs1;
+				op = 0b0010011;
+				funct3 = 0x7;
+				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
+				decompressed_instruction = op | (rd << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20) | ((shift_imm >> 5) ? 0xFE000000 : 0x0);
+
+				return decompressed_instruction;
+			}
+			break;
+		case 0x6: // C.BEQZ
+			op = 0b1100011;
+			funct3 = 0x0;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = rs1;
+			CB_imm = (((instWord >> 3) & 0x3) << 1) | (((instWord >> 10) & 0x3) << 3) | (((instWord >> 2) & 0x1) << 5) | (((instWord >> 5) & 0x3) << 6) | (((instWord >> 12) & 0x1) << 8);
+			return decompressed_instruction;
+			break;
+		case 0x7: // C.BNEZ
+			op = 0b1100011;
+			funct3 = 0x1;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = rs1;
+			CB_imm = (((instWord >> 3) & 0x3) << 1) | (((instWord >> 10) & 0x3) << 3) | (((instWord >> 2) & 0x1) << 5) | (((instWord >> 5) & 0x3) << 6) | (((instWord >> 12) & 0x1) << 8);
 			return decompressed_instruction;
 			break;
 
 		default:
 			break;
 		}
+		return instWord;
 	}
-	return instWord;
 }
 
 void instDecExec(unsigned int instWord)
