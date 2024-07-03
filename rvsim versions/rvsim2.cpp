@@ -2,7 +2,6 @@
 	This is just a skeleton. It DOES NOT implement all the requirements.
 	It only recognizes the RV32I "ADD", "SUB" and "ADDI" instructions only.
 	It prints "Unkown Instruction" for all other instructions!
-
 	References:
 	(1) The risc-v ISA Manual ver. 2.1 @ https://riscv.org/specifications/
 	(2) https://github.com/michaeljclark/riscv-meta/blob/master/meta/opcodes
