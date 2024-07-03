@@ -115,8 +115,11 @@ void instDecExec(unsigned int instWord)
 	U_imm = ((instWord >> 12) & 0xFFFFF);
 	// U_imm = U_imm << 12;
 	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (((instWord >> 31) & 0x1) << 12);
-	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 10) | ((instWord & 0x100000) << 19) | ((instWord & 0x80000000) << 20);
-	// inst
+	if (B_imm >> 12)
+		B_imm |= 0xFFFFF000;
+	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 11) | ((instWord >> 31) << 20) | ((instWord >> 20) << 11);
+	if (J_imm >> 20)
+		J_imm |= 0xFFF00000;	// inst
 
 	printPrefix(instPC, instWord);
 
@@ -377,34 +380,34 @@ void instDecExec(unsigned int instWord)
 		switch (funct3)
 		{
 		case 0:
-			cout << "\tBEQ\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
+			cout << "\tBEQ\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
 			if (reg[rs1] == reg[rs2])
-				pc = instPC + B_imm;
+				pc = instPC + (int)B_imm;
 			break;
 		case 1:
-			cout << "\tBNE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
+			cout << "\tBNE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
 			if (reg[rs1] != reg[rs2])
-				pc = instPC + B_imm;
+				pc = instPC + (int)B_imm;
 			break;
 		case 4:
-			cout << "\tBLT\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
+			cout << "\tBLT\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
 			if (reg[rs1] < reg[rs2])
-				pc = instPC + B_imm;
+				pc = instPC + (int)B_imm;
 			break;
 		case 5:
-			cout << "\tBGE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
+			cout << "\tBGE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
 			if (reg[rs1] >= reg[rs2])
-				pc = instPC + B_imm;
+				pc = instPC + (int)B_imm;
 			break;
 		case 6:
-			cout << "\tBLTU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
+			cout << "\tBLTU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
 			if (static_cast<unsigned>(reg[rs1]) < static_cast<unsigned>(reg[rs2]))
-				pc = instPC + B_imm;
+				pc = instPC + (int)B_imm;
 			break;
 		case 7:
-			cout << "\tBGEU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << B_imm << "\n";
+			cout << "\tBGEU\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << instPC + B_imm << "\n";
 			if (static_cast<unsigned>(reg[rs1]) >= static_cast<unsigned>(reg[rs2]))
-				pc = instPC + B_imm;
+				pc = instPC + (int)B_imm;
 			break;
 		default:
 			break;
@@ -412,7 +415,7 @@ void instDecExec(unsigned int instWord)
 	}
 	else if (opcode == 0x6F)
 	{
-		cout << "\tJAL\t" << abiName[rd] << ", " << J_imm << "\n"
+		cout << "\tJAL\t" << abiName[rd] << ", " << instPC + J_imm << "\n"
 			 << endl;
 		reg[rd] = instPC + 4;
 		pc = instPC + J_imm;
