@@ -117,9 +117,9 @@ void instDecExec(unsigned int instWord)
 	B_imm = (((instWord >> 8) & 0xF) << 1) | (((instWord >> 25) & 0x3F) << 5) | (((instWord >> 7) & 0x1) << 11) | (((instWord >> 31) & 0x1) << 12);
 	if (B_imm >> 12)
 		B_imm |= 0xFFFFF000;
-	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 11) | ((instWord >> 31) << 20) | ((instWord >> 20) << 11);
+	J_imm = (((instWord >> 21) & 0x3FF) << 1) | (((instWord >> 12) & 0xFF) << 12) | ((instWord >> 31) << 20) | (((instWord >> 20) & 0x1) << 11);
 	if (J_imm >> 20)
-		J_imm |= 0xFFF00000;	// inst
+		J_imm |= 0xFFE00000;
 
 	printPrefix(instPC, instWord);
 
