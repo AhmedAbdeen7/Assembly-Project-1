@@ -50,7 +50,7 @@ unsigned int deCompress(unsigned int instWord)
 	// 	return;
 	// }
 	instWord = 0x00000114;
-	unsigned int rd_dash, rs1, rs2, funct4, funct3, offset, op;
+	unsigned int rd_dash, rs1_dash, rs1, rs2, funct4, funct3, offset, op;
 	unsigned int CIW_imm, CL_imm, CJ_offset;
 
 	op = instWord & 0x00000003;
@@ -83,6 +83,8 @@ unsigned int deCompress(unsigned int instWord)
 		case 2:
 			// CL - Format
 			rd_dash = (instWord >> 2) & 0x00000007;
+			rs1_dash = (instWord >> 7) & 0x00000007;
+
 			CL_imm = ((instWord & 0x060) >> 5) | ((instWord >> 8) & 0x1C);
 			CL_imm = (((CL_imm & 0x01) << 4) | ((CL_imm & 0x02) >> 1) | (CL_imm & 0x1C) >> 1);
 			cout << "\tC.LW\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CIW_imm) << "\n";
@@ -105,15 +107,18 @@ unsigned int deCompress(unsigned int instWord)
 		switch (funct3)
 		{
 		case 1:
+			// C.JAL
 			CJ_offset = (instWord >> 2) & 0x00000FFF; // 11 bits
 			CJ_offset = (((CJ_offset & 0x001) << 4) | ((CJ_offset & 0x00E) >> 1) |
 						 ((CJ_offset & 0x010) << 2) | ((CJ_offset & 0x040) << 3) |
 						 ((CJ_offset & 0x200) >> 6) | (CJ_offset & 0x5A0));
-
-			cout << "\tC.JAL\t" << hex << (int)(CJ_offset) << "\n";
+			cout << "\tC.J\t" << dec << (int)(CJ_offset) << "\n";
 			instWord = 0x000000EF; // J-type
 			instWord |= ((CJ_offset & 0x3FF) << 21) | ((CJ_offset & 0x0400) << 10);
-
+			if ((CJ_offset & 0x0400) != 0) // sign-extend
+			{
+				instWord |= 0x801FF000;
+			}
 			instDecExec(instWord);
 			break;
 		case 5:
@@ -123,10 +128,14 @@ unsigned int deCompress(unsigned int instWord)
 						 ((CJ_offset & 0x010) << 2) | ((CJ_offset & 0x040) << 3) |
 						 ((CJ_offset & 0x200) >> 6) | (CJ_offset & 0x5A0));
 
-			cout << "\tC.J\t" << hex << (int)(CJ_offset) << "\n";
+			cout << "\tC.J\t" << dec << (int)(CJ_offset) << "\n";
 
 			instWord = 0x0000006F; // J-type
 			instWord |= ((CJ_offset & 0x3FF) << 21) | ((CJ_offset & 0x0400) << 10);
+			if ((CJ_offset & 0x0400) != 0) // sign-extend
+			{
+				instWord |= 0x801FF000;
+			}
 
 			instDecExec(instWord);
 			break;
