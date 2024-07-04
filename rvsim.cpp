@@ -51,7 +51,7 @@ unsigned int deCompress(unsigned int instWord)
 	// }
 	instWord = 0x00000114;
 	unsigned int rd_dash, rs1_dash, rs1, rs2, funct4, funct3, offset, op;
-	unsigned int CIW_imm, CL_imm, CJ_offset;
+	unsigned int CIW_imm, CL_imm, CJ_offset, CSS_imm;
 
 	op = instWord & 0x00000003;
 	funct3 = (instWord >> 13) & 0x00000007;
@@ -87,13 +87,18 @@ unsigned int deCompress(unsigned int instWord)
 
 			CL_imm = ((instWord & 0x060) >> 5) | ((instWord >> 8) & 0x1C);
 			CL_imm = (((CL_imm & 0x01) << 4) | ((CL_imm & 0x02) >> 1) | (CL_imm & 0x1C) >> 1);
-			cout << "\tC.LW\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CIW_imm) << "\n";
-
+			cout << "\tC.LW\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CL_imm) << "(" << abiName[rs1_dash + 8] << ")" << "\n";
 			instWord = 0x00000003; // I-Type LOAD
-			rd_dash = rd_dash << 7;
+			rd_dash |= 0b01000;
+			rd_dash <<= 7;
 			instWord |= rd_dash;
-			// Rest TBC
-
+			instWord |= 0x00002000; // LW
+			rs1_dash |= 0b01000;
+			rs1_dash <<= 15;
+			instWord |= rs1_dash;
+			CL_imm = CL_imm << 22;
+			instWord |= CL_imm;
+			instDecExec(instWord);
 			break;
 		case 6:
 			break;
@@ -136,18 +141,17 @@ unsigned int deCompress(unsigned int instWord)
 			{
 				instWord |= 0x801FF000;
 			}
-
 			instDecExec(instWord);
 			break;
-		case 2:
-			// CL - Format
-			rd_dash = (instWord >> 2) & 0x00000007;
-			instWord = 0x00000003; // I-Type LOAD
-			rd_dash = rd_dash << 7;
-			instWord |= rd_dash;
-			// Rest TBC
+		// case 2:
+		// 	// CL - Format
+		// 	rd_dash = (instWord >> 2) & 0x00000007;
+		// 	instWord = 0x00000003; // I-Type LOAD
+		// 	rd_dash = rd_dash << 7;
+		// 	instWord |= rd_dash;
+		// 	// Rest TBC
 
-			break;
+		// 	break;
 		case 6:
 			break;
 
@@ -155,10 +159,29 @@ unsigned int deCompress(unsigned int instWord)
 			break;
 		}
 	}
+	else if (op == 0x2)
+	{
+		switch (funct3)
+		{
+		case 6:
+			rs2 = (instWord >> 2) & 0x1F;
+			CSS_imm = (instWord >> 7) & 0x3F;
+			CSS_imm = ((CSS_imm & 0x3) << 4) | ((CSS_imm & 0x3C) >> 4);
+			cout << "\tC.SWSP\t" << abiName[rs2] << ", " << dec << (int)(CSS_imm) << "\n";
+			instWord = 0x00000023;
+			rs2 <<= 20;
+			instWord |= rs2;
+			instWord |= ((CSS_imm & 0x7) << 9) | ((CSS_imm & 0x1FA) << 22);
+			instWord |= 0x00012000;
+			instDecExec(instWord);
+			break;
+		default:
+			break;
+		}
 
-	return instWord;
+		return instWord;
+	}
 }
-
 void instDecExec(unsigned int instWord)
 {
 	unsigned int rd, rs1, rs2, shamt, funct3, funct7, opcode;
