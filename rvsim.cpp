@@ -51,7 +51,7 @@ unsigned int deCompress(unsigned int instWord)
 	// }
 	instWord = 0x00000114;
 	unsigned int rd_dash, rs1_dash, rs1, rs2, funct4, funct3, offset, op;
-	unsigned int CIW_imm, CL_imm, CJ_offset, CSS_imm;
+	unsigned int CIW_imm, CL_imm, CS_imm_func, CJ_offset, CSS_imm, S_imm_func, shift_imm, S_imm, CB_imm;
 
 	op = instWord & 0x00000003;
 	funct3 = (instWord >> 13) & 0x00000007;
@@ -101,6 +101,13 @@ unsigned int deCompress(unsigned int instWord)
 			instDecExec(instWord);
 			break;
 		case 6:
+			op = 0b0100011;
+			funct3 = 0x2;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = (instWord >> 2) & 0x7;
+			S_imm = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
+			instWord = op | (((S_imm * 4) & 0x1F) << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | ((S_imm >> 5) << 25) | (S_imm >> 4 ? 0xFE000000 : 0x00000000);
+			return instWord;
 			break;
 
 		default:
@@ -111,6 +118,8 @@ unsigned int deCompress(unsigned int instWord)
 	{
 		switch (funct3)
 		{
+			CS_imm_func = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
+
 		case 1:
 			// C.JAL
 			CJ_offset = (instWord >> 2) & 0x00000FFF; // 11 bits
@@ -125,6 +134,102 @@ unsigned int deCompress(unsigned int instWord)
 				instWord |= 0x801FF000;
 			}
 			instDecExec(instWord);
+			break;
+		case 0x4:
+
+			if (CS_imm_func == 0xF) // C.AND
+			{
+				rd_dash = (instWord >> 7) & 0x7;
+				rs1_dash = rd_dash;
+				op = 0b0110011;
+				funct3 = 0x7;
+				rs2 = (instWord >> 2) & 0x7;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1_dash << 15) | (rs2 << 20) | (0x00000000);
+				return instWord;
+			}
+
+			else if (CS_imm_func == 0xE) // C.OR
+			{
+				rd_dash = (instWord >> 7) & 0x7;
+				rs1 = rd_dash;
+				op = 0b0110011;
+				funct3 = 0x6;
+				rs2 = (instWord >> 2) & 0x7;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
+
+				return instWord;
+			}
+			else if (CS_imm_func == 0xD) // C.XOR
+			{
+				rd_dash = (instWord >> 7) & 0x7;
+				rs1 = rd_dash;
+				op = 0b0110011;
+				funct3 = 0x4;
+				rs2 = (instWord >> 2) & 0x7;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x00000000);
+
+				return instWord;
+			}
+			else if (CS_imm_func == 0xC) // C.SUB
+			{
+				rd_dash = (instWord >> 7) & 0x7;
+				rs1 = rd_dash;
+				op = 0b0110011;
+				funct3 = 0x0;
+				rs2 = (instWord >> 2) & 0x7;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x40000000);
+
+				return instWord;
+			}
+			else if (((instWord >> 10) & 0x3) == 0) // C.SRLI
+			{
+				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rd_dash = rs1;
+				op = 0b0010011;
+				funct3 = 0x5;
+				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20);
+
+				return instWord;
+			}
+			else if (((instWord >> 10) & 0x3) == 0b01) // C.SRAI
+			{
+				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rd_dash = rs1;
+				op = 0b0010011;
+				funct3 = 0x5;
+				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20) | 0x20000000;
+
+				return instWord;
+			}
+			else if (((instWord >> 10) & 0x3) == 10) // C.ANDI
+			{
+				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rd_dash = rs1;
+				op = 0b0010011;
+				funct3 = 0x7;
+				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20) | ((shift_imm >> 5) ? 0xFE000000 : 0x0);
+
+				return instWord;
+			}
+			break;
+		case 0x6: // C.BEQZ
+			op = 0b1100011;
+			funct3 = 0x0;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = rs1;
+			CB_imm = (((instWord >> 3) & 0x3) << 1) | (((instWord >> 10) & 0x3) << 3) | (((instWord >> 2) & 0x1) << 5) | (((instWord >> 5) & 0x3) << 6) | (((instWord >> 12) & 0x1) << 8);
+			return instWord;
+			break;
+		case 0x7: // C.BNEZ
+			op = 0b1100011;
+			funct3 = 0x1;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = rs1;
+			CB_imm = (((instWord >> 3) & 0x3) << 1) | (((instWord >> 10) & 0x3) << 3) | (((instWord >> 2) & 0x1) << 5) | (((instWord >> 5) & 0x3) << 6) | (((instWord >> 12) & 0x1) << 8);
+			return instWord;
 			break;
 		case 5:
 			// CJ - Format C.J instruction
@@ -143,17 +248,15 @@ unsigned int deCompress(unsigned int instWord)
 			}
 			instDecExec(instWord);
 			break;
-		// case 2:
-		// 	// CL - Format
-		// 	rd_dash = (instWord >> 2) & 0x00000007;
-		// 	instWord = 0x00000003; // I-Type LOAD
-		// 	rd_dash = rd_dash << 7;
-		// 	instWord |= rd_dash;
-		// 	// Rest TBC
+			// case 2:
+			// 	// CL - Format
+			// 	rd_dash = (instWord >> 2) & 0x00000007;
+			// 	instWord = 0x00000003; // I-Type LOAD
+			// 	rd_dash = rd_dash << 7;
+			// 	instWord |= rd_dash;
+			// 	// Rest TBC
 
-		// 	break;
-		case 6:
-			break;
+			// 	break;
 
 		default:
 			break;
@@ -410,7 +513,7 @@ void instDecExec(unsigned int instWord)
 		cout << "\tECALL\n";
 		if (reg[17] == 1)
 		{
-			cout << reg[10];
+			cout << dec << (int)reg[10] << "\n";
 		}
 		else if (reg[17] == 4)
 		{
@@ -571,7 +674,7 @@ int main(int argc, char *argv[])
 					   (((unsigned char)memory[pc + 3]) << 24);
 			pc += 4;
 			// remove the following line once you have a complete simulator
-			if ((pc > 16000) | (instWord == 0))
+			if ((instWord == 0))
 				break; // stop when PC reached address 32
 
 			instDecExec(instWord);
