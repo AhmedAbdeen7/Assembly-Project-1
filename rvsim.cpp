@@ -219,16 +219,18 @@ unsigned int deCompress(unsigned int instWord)
 			op = 0b1100011;
 			funct3 = 0x0;
 			rs1 = (instWord >> 7) & 0x7;
-			rs2 = rs1;
+			rs2 = reg[0];
 			CB_imm = (((instWord >> 3) & 0x3) << 1) | (((instWord >> 10) & 0x3) << 3) | (((instWord >> 2) & 0x1) << 5) | (((instWord >> 5) & 0x3) << 6) | (((instWord >> 12) & 0x1) << 8);
+			instWord = op | (rs1 << 15) | (rs2 << 20) | (((CB_imm >> 1) & 0xF)) | (((CB_imm >> 5) & 0x1F) << 25) | (funct3 << 12) | (CB_imm >> 8 ? (0x80000080) : 0x00000000);
 			return instWord;
 			break;
 		case 0x7: // C.BNEZ
 			op = 0b1100011;
 			funct3 = 0x1;
 			rs1 = (instWord >> 7) & 0x7;
-			rs2 = rs1;
+			rs2 = reg[0];
 			CB_imm = (((instWord >> 3) & 0x3) << 1) | (((instWord >> 10) & 0x3) << 3) | (((instWord >> 2) & 0x1) << 5) | (((instWord >> 5) & 0x3) << 6) | (((instWord >> 12) & 0x1) << 8);
+			instWord = op | (rs1 << 15) | (rs2 << 20) | (((CB_imm >> 1) & 0xF)) | (((CB_imm >> 5) & 0x1F) << 25) | (funct3 << 12) | (CB_imm >> 8 ? (0x80000080) : 0x00000000);
 			return instWord;
 			break;
 		case 5:
