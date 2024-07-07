@@ -850,13 +850,6 @@ void instDecExec(unsigned int instWord, bool compressed)
 		}
 		reg[rd] = instPC + (U_imm << 12);
 	}
-	else if (opcode == 0x73)
-	{ // ebreak (I -type)
-		if (!compressed)
-		{
-			cout << "\tEBREAK\t" << endl;
-		}
-	}
 	else if (opcode == 0x63)
 	{
 		switch (funct3)
