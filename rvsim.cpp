@@ -1,8 +1,4 @@
 /*
-    This is just a skeleton. It DOES NOT implement all the requirements.
-    It only recognizes the RV32I "ADD", "SUB" and "ADDI" instructions only.
-    It prints "Unkown Instruction" for all other instructions!
-
     References:
     (1) The risc-v ISA Manual ver. 2.1 @ https://riscv.org/specifications/
     (2) https://github.com/michaeljclark/riscv-meta/blob/master/meta/opcodes
@@ -488,6 +484,7 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
 
     unsigned int I_imm, S_imm, B_imm, U_imm, J_imm; // Seperating the immediates of each format
     unsigned int address;
+    unsigned int addr;
     unsigned int instPC; // An instruction counter (the address of the present instruction)
     if (compressed)
     {
@@ -760,10 +757,11 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
             {
                 cout << "\tLW\t" << abiName[rd] << ", " << dec << (int)I_imm << "(" << abiName[rs1] << ")" << "\n";
             }
-            reg[rd] = memory[reg[rs1] + (int)I_imm];
-            reg[rd] |= (memory[reg[rs1] + (int)I_imm + 1] << 8);
-            reg[rd] |= (memory[reg[rs1] + (int)I_imm + 2] << 16);
-            reg[rd] |= (memory[reg[rs1] + (int)I_imm + 3] << 24);
+            addr = reg[rs1] + (int)I_imm;
+			reg[rd] = memory[addr];
+			reg[rd] |= (memory[addr + 1] << 8);
+			reg[rd] |= (memory[addr + 2] << 16);
+			reg[rd] |= (memory[addr + 3] << 24);
 
             break;
         case 4:
@@ -996,10 +994,6 @@ int main(int argc, char *argv[]) // arguments for the data and input machine cod
             emitError("Cannot read from data file\n");
     }
     int count = 0;
-    for (int i = 0; i < 20; i++)
-    {
-        cout << (char *)(memory + 0x00010000);
-    }
 
     if (inFile.is_open())
     {
@@ -1028,7 +1022,7 @@ int main(int argc, char *argv[]) // arguments for the data and input machine cod
             }
             count++;
             if (instWord == 0 || count > 65536)
-                break; // stop when PC reached address 32
+                break; // stop when PC reached address 65536
         }
         printRegisterContents();
     }
