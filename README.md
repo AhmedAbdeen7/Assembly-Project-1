@@ -89,6 +89,8 @@ Challenges: -
 - One of the challenges was testing the load and store instructions. The store could be tested through loading, where we can store a value in the memory and then load it into a new register and then print the value. However, this would assume that the load instruction was executed properly, which was a plausible assumption. However, to make sure of the contents in the registers, we created a function to print the contents in the registers after execution.
 
 - Another challenge was the process of merging the work of the group members where each group member had a number of instructions to work on, and some of the instructions of one group member depended on some instructions of another group member. Thus, the merging process took more time because proper testing might require more than one member to finish their work at the same time.
+  
+- The most time-consuming task was allocating the unusually ordered immediate, especially in compressed instructions and translating it to the decompressed word which also requires some shifting and manipulating of bits.
 
 - Limitations: -
 - The simulator does not support pseudo instructions. The simulator represents them in true instructions instead.
