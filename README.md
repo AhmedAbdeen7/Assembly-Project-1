@@ -1,6 +1,4 @@
 
-<html>
-<head>
 <title>Spring 2024 Project Report
 
 Dr. Mohamed Shalan
@@ -13,11 +11,9 @@ aly elaswad 900225517
 Ahmed M.Abdeen 900225815 
 CSCE 2301 </title>
 
-</head>
-
 Objective: Create an ISS for RISC-V RV32IC Base Integer Instruction Set with support for instruction compression.
 
-<h2>How to Build the simulator<h/>
+How to Build the simulator
 (1) Choose a suitable programming language (We chose c++)
 (2) Allocate Memory to simulate the memory in the assembler (For example: an array)
 (3) Create an array for the 32 registers and their abiNames 
@@ -54,7 +50,7 @@ Objective: Create an ISS for RISC-V RV32IC Base Integer Instruction Set with sup
 6. Put the .bin file in the same folder as the rvsim.cpp file
 7. (OPTIONAL) put a data file.bin in the same folder as the rvsim.cpp file
 
-<h2>Simulator Design <h/>
+Simulator Design
 Key Components: -
 
 -Memory: It is an array of size (64 + 64)*1024 to simulate a 64kbyte memory
@@ -63,6 +59,6 @@ Key Components: -
 -Decompressor: The function "deCompress" takes a 16 bit instruction. Then, it prints the compressed instruction and decompresses it into a 32 bit instrution to be passed in the instDecExec that would execute it.
 -Read stream: The intmain() function takes up to two arguments: the input file and data file. It then reads the contents of those files and stores them in the memory using their addresses as the index in the array
 
-<h2>Challenges and Limitations:-<h/>
+Challenges and Limitations:-
 - One of the challenges was testing the load and store instructions. The store could be tested through loading, where we can store a value in the memory and then load it into a new register and then print the value. However, this would assume that the load instruction was executed properly, which was a plausible assumption. However, to make sure of the contents in the 
 
