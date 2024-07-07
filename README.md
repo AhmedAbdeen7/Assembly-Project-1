@@ -23,17 +23,29 @@ Objective: Create an ISS for RISC-V RV32IC Base Integer Instruction Set with sup
 
 How to Build the simulator
 (1) Choose a suitable programming language (We chose c++)
+
 (2) Allocate Memory to simulate the memory in the assembler (For example: an array)
+
 (3) Create an array for the 32 registers and their abiNames 
+
 (4) Read the machine code instruction words and classify them accroding to their format based on their opcode
+
 (5) To distinguish between the instructions within each format, use funct3, funct7 in addition to the opcode
+
 (6) When the instruction is detected, it is executed and printed on the terminal 
+
 (7) For the compressed instructions, they are detected based on the first two bits of the opcode. When it is not 11 then the instruction is compressed
+
 (8) When a compressed instruction is detected, there is a function that prints it and decompresses it and turns it to a normal 32 bit instruction to be executed by the simulator
+
 (9) Use a pc (program counter) which is an integer variable that is incremented by 4 after each instruction word (or by 2 if the instruction is compressed). It has the address of the next instruction
+
 (10) Use another counter for the instruction (Instpc) to point to the present instruction
+
 (11) Print the values of the registers at the end of the program 
+
 (12) Create two parameters for the int main(): one is the input file and the other is the data file (for data variables, strings, etc)
+
 (13) Handle potential errors, such as not being able to access the input or the data file and reading an unknown instruction that is not supported RV32IC
   
 
