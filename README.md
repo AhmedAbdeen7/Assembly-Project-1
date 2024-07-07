@@ -72,6 +72,7 @@ Key Components: -
 -Read stream: The intmain() function takes up to two arguments: the input file and data file. It then reads the contents of those files and stores them in the memory using their addresses as the index in the array
 
 Challenges and Limitations:-
+
 Challenges: -
 - One of the challenges was testing the load and store instructions. The store could be tested through loading, where we can store a value in the memory and then load it into a new register and then print the value. However, this would assume that the load instruction was executed properly, which was a plausible assumption. However, to make sure of the contents in the registers, we created a function to print the contents in the registers after execution.
 
