@@ -882,7 +882,7 @@ void instDecExec(unsigned int instWord, bool compressed)
 			{
 				cout << "\tBLT\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << hex << "0x" << instPC + (int)B_imm << "\n";
 			}
-			if (reg[rs1] < reg[rs2])
+			if ((int)reg[rs1] < (int)reg[rs2])
 				pc = instPC + B_imm;
 			break;
 		case 5:
@@ -890,7 +890,7 @@ void instDecExec(unsigned int instWord, bool compressed)
 			{
 				cout << "\tBGE\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << hex << "0x" << instPC + (int)B_imm << "\n";
 			}
-			if (reg[rs1] >= reg[rs2])
+			if ((int)reg[rs1] >= (int)reg[rs2])
 				pc = instPC + B_imm;
 			break;
 		case 6:
