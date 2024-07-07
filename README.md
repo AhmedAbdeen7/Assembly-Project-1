@@ -43,7 +43,7 @@ How to Build the simulator
 
 
 
-<h2>Steps on how to run the Simulator<h/>
+<h>Steps on how to run the Simulator<h/>
 
 1. Open terminal at the folder that contains the rvsim.cpp file
 2. run: g++ rvsim.cpp -o rvsim.exe
