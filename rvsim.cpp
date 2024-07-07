@@ -21,7 +21,7 @@ unsigned int reg[32];
 string abiName[32] = {"zero", "ra", "sp", "gp", "tp", "t0", "t1", "t2", "s0", "s1",
 					  "a0", "a1", "a2", "a3", "a4", "a5", "a6", "a7", "s2", "s3", "s4", "s5",
 					  "s6", "s7", "s8", "s9", "s10", "s11", "t3", "t4", "t5", "t6"};
-unsigned char memory[(16 + 64) * 1024];
+unsigned char memory[(64 + 64) * 1024];
 void instDecExec(unsigned int instWord, bool compressed);
 
 void emitError(string s)
@@ -123,9 +123,13 @@ unsigned int deCompress(unsigned int instWord)
 	}
 	else if (op == 0x1)
 	{
+
+		// CS_imm_func = (((instWord >> 10) & 0x7) >> 2) | (instWord >> 5) & 0x3;
+		CS_imm_func = (instWord >> 10) & 0x00000007;
+		CS_imm_func = CS_imm_func << 2;
+		CS_imm_func = CS_imm_func + ((instWord >> 5) & 0x00000003);
 		switch (funct3)
 		{
-			CS_imm_func = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
 		case 0:
 			if (instWord == 0x01)
 			{
@@ -218,12 +222,16 @@ unsigned int deCompress(unsigned int instWord)
 			if (CS_imm_func == 0xF) // C.AND
 			{
 				rd_dash = (instWord >> 7) & 0x7;
+				rd_dash += 8;
 				rs1_dash = rd_dash;
 				op = 0b0110011;
 				funct3 = 0x7;
 				rs2 = (instWord >> 2) & 0x7;
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | ((rs2 << 20) + 8) | (0x00000000);
-				cout << "\tC.AND\t" << abiName[rd_dash + 8] << ", " << abiName[rs2 + 8] << "\n";
+				rs2 += 8;
+				instWord = 0;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1_dash << 15) | (rs2 << 20);
+				cout << "\tC.AND\t" << abiName[rd_dash] << ", " << abiName[rs2] << "\n";
+
 				instDecExec(instWord, 1);
 				return instWord;
 			}
@@ -231,24 +239,33 @@ unsigned int deCompress(unsigned int instWord)
 			else if (CS_imm_func == 0xE) // C.OR
 			{
 				rd_dash = (instWord >> 7) & 0x7;
+				rd_dash += 8;
 				rs1 = rd_dash;
 				op = 0b0110011;
 				funct3 = 0x6;
 				rs2 = (instWord >> 2) & 0x7;
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | ((rs2 << 20) + 8) | (0x00000000);
-				cout << "\tC.OR\t" << abiName[rd_dash + 8] << ", " << abiName[rs2 + 8] << "\n";
+				rs2 += 8;
+				instWord = 0;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20);
+				cout << "\tC.OR\t" << abiName[rd_dash] << ", " << abiName[rs2] << "\n";
+
 				instDecExec(instWord, 1);
 				return instWord;
 			}
 			else if (CS_imm_func == 0xD) // C.XOR
 			{
 				rd_dash = (instWord >> 7) & 0x7;
+				rd_dash += 8;
+
 				rs1 = rd_dash;
 				op = 0b0110011;
 				funct3 = 0x4;
 				rs2 = (instWord >> 2) & 0x7;
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | ((rs2 << 20) + 8) | (0x00000000);
-				cout << "\tC.XOR\t" << abiName[rd_dash + 8] << ", " << abiName[rs2 + 8] << "\n";
+				rs2 += 8;
+				instWord = 0;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) & (0xFFFFFFFF);
+				cout << "\tC.XOR\t" << abiName[rd_dash] << ", " << abiName[rs2] << "\n";
+
 				instDecExec(instWord, 1);
 
 				return instWord;
@@ -256,12 +273,15 @@ unsigned int deCompress(unsigned int instWord)
 			else if (CS_imm_func == 0xC) // C.SUB
 			{
 				rd_dash = (instWord >> 7) & 0x7;
+				rd_dash += 8;
 				rs1 = rd_dash;
 				op = 0b0110011;
 				funct3 = 0x0;
 				rs2 = (instWord >> 2) & 0x7;
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | ((rs2 << 20) + 8) | (0x40000000);
-				cout << "\tC.SUB\t" << abiName[rd_dash + 8] << ", " << abiName[rs2 + 8] << "\n";
+				rs2 += 8;
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | (0x40000000);
+
+				cout << "\tC.SUB\t" << abiName[rd_dash] << ", " << abiName[rs2] << "\n";
 				instDecExec(instWord, 1);
 
 				return instWord;
@@ -269,12 +289,13 @@ unsigned int deCompress(unsigned int instWord)
 			else if (((instWord >> 10) & 0x3) == 0) // C.SRLI
 			{
 				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rs1 += 8;
 				rd_dash = rs1;
 				op = 0b0010011;
 				funct3 = 0x5;
 				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 12) & 0x1) << 5);
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | (shift_imm << 20);
-				cout << "\tC.SRLI\t" << abiName[rd_dash + 8] << ", " << dec << (int)shift_imm << "\n";
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20);
+				cout << "\tC.SRLI\t" << abiName[rd_dash] << ", " << dec << (int)shift_imm << "\n";
 
 				instDecExec(instWord, 1);
 
@@ -283,12 +304,13 @@ unsigned int deCompress(unsigned int instWord)
 			else if (((instWord >> 10) & 0x3) == 0b01) // C.SRAI
 			{
 				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rs1 += 8;
 				rd_dash = rs1;
 				op = 0b0010011;
 				funct3 = 0x5;
 				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | (shift_imm << 20) | 0x20000000;
-				cout << "\tC.SRAI\t" << abiName[rd_dash + 8] << ", " << dec << (int)shift_imm << "\n";
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20) | 0x20000000;
+				cout << "\tC.SRAI\t" << abiName[rd_dash] << ", " << dec << (int)shift_imm << "\n";
 				instDecExec(instWord, 1);
 
 				return instWord;
@@ -296,11 +318,12 @@ unsigned int deCompress(unsigned int instWord)
 			else if (((instWord >> 10) & 0x3) == 10) // C.ANDI
 			{
 				rs1 = (instWord >> 7) & 0x7; // Check later for choice of registers
+				rs1 += 8;
 				rd_dash = rs1;
 				op = 0b0010011;
 				funct3 = 0x7;
 				shift_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 10) & 0x1) << 5);
-				instWord = op | ((rd_dash << 7) + 8) | (funct3 << 12) | ((rs1 << 15) + 8) | (shift_imm << 20) | ((shift_imm >> 5) ? 0xFE000000 : 0x0);
+				instWord = op | (rd_dash << 7) | (funct3 << 12) | (rs1 << 15) | (shift_imm << 20) | ((shift_imm >> 5) ? 0xFE000000 : 0x0);
 				cout << "\tC.ANDI\t" << abiName[rd_dash + 8] << ", " << dec << (int)shift_imm << "\n";
 				instDecExec(instWord, 1);
 
@@ -608,6 +631,7 @@ void instDecExec(unsigned int instWord, bool compressed)
 				cout << "\tADDI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)I_imm << "\n";
 			}
 			reg[rd] = reg[rs1] + int(I_imm);
+			// printRegisterContents();
 			break;
 		case 1:
 			if (!compressed)
@@ -850,6 +874,13 @@ void instDecExec(unsigned int instWord, bool compressed)
 		}
 		reg[rd] = instPC + (U_imm << 12);
 	}
+	else if (opcode == 0x73)
+	{ // ebreak (I -type)
+		if (!compressed)
+		{
+			cout << "\tEBREAK\t" << endl;
+		}
+	}
 	else if (opcode == 0x63)
 	{
 		switch (funct3)
@@ -999,7 +1030,7 @@ int main(int argc, char *argv[])
 			if (instWord == 0 || count > 65536)
 				break; // stop when PC reached address 32
 		}
-		// printRegisterContents();
+		printRegisterContents();
 	}
 	else
 		emitError("Cannot access text file\n");
