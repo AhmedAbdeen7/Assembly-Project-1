@@ -58,39 +58,65 @@ unsigned int deCompress(unsigned int instWord)
 
     offset = (instWord >> 2) & 0x000007FF;
     if (op == 0x0)
-    { // CL-CS-CIW Formats
-        switch (funct3)
-        {
-        case 0:
-            // CIW - Format
-            rd = (instWord >> 2) & 0x00000007;
-            CIW_imm = (instWord >> 5) & 0x000000FF;
-            CIW_imm = (((CIW_imm & 0x02) >> 1) | ((CIW_imm & 0x01) << 1) | ((CIW_imm & 0x0C) << 4) | ((CIW_imm & 0x0F0) >> 2)) << 2;
-            instWord = 0x00000013; // I-type
-            rd = rd << 7;
-            instWord |= rd;
-            instWord |= 0x00000000;  // ADDI
-            instWord |= 0x00010000;  // sp ~x2
-            CIW_imm = CIW_imm << 20; // place imm[0] at bit 20
-            instWord |= CIW_imm;
-            instDecExec(instWord);
-            break;
-        case 2:
-            // CL - Format
-            rd = (instWord >> 2) & 0x00000007;
-            instWord = 0x00000003; // I-Type LOAD
-            rd = rd << 7;
-            instWord |= rd;
-            // Rest TBC
+	{ // CL-CS-CIW Formats
+		switch (funct3)
+		{
+		case 0:
+			// CIW - Format
+			rd_dash = (instWord >> 2) & 0x00000007;
+			CIW_imm = (instWord >> 5) & 0x000000FF;
+			CIW_imm = (((CIW_imm & 0x02) >> 1) | ((CIW_imm & 0x01) << 1) | ((CIW_imm & 0x0C0) >> 4) | ((CIW_imm & 0x03c) << 2));
+			// Print
+			cout << "\tC.ADDI4SPN\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CIW_imm) << "\n";
+			// WILL CHANGE WITH CONTROL SIGNAL
+			CIW_imm = CIW_imm << 2;
+			instWord = 0x00000013; // I-type
+			rd_dash = (rd_dash + 8) << 7;
+			instWord |= rd_dash;
+			instWord |= 0x00000000;	 // ADDI
+			instWord |= 0x00010000;	 // sp ~x2
+			CIW_imm = CIW_imm << 20; // place imm[0] at bit 20
+			instWord |= CIW_imm;
+			instDecExec(instWord, 1);
+			break;
+		case 2:
+			// CL - Format
+			rd_dash = (instWord >> 2) & 0x00000007;
+			rs1_dash = (instWord >> 7) & 0x00000007;
 
-            break;
-        case 6:
-            break;
+			CL_imm = ((instWord & 0x060) >> 5) | ((instWord >> 8) & 0x1C);
+			CL_imm = (((CL_imm & 0x01) << 4) | ((CL_imm & 0x02) >> 1) | (CL_imm & 0x1C) >> 1);
+			cout << "\tC.LW\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CL_imm << 2) << "(" << abiName[rs1_dash + 8] << ")" << "\n";
+			instWord = 0x00000003; // I-Type LOAD
+			rd_dash |= 0b01000;
+			rd_dash <<= 7;
+			instWord |= rd_dash;
+			instWord |= 0x00002000; // LW
+			rs1_dash |= 0b01000;
+			rs1_dash <<= 15;
+			instWord |= rs1_dash;
+			CL_imm = CL_imm << 22;
+			instWord |= CL_imm;
 
-        default:
-            break;
-        }
-    }
+			instDecExec(instWord, 1);
+			break;
+		case 6:
+			op = 0b0100011;
+			funct3 = 0x2;
+			rs1 = (instWord >> 7) & 0x7;
+			rs2 = (instWord >> 2) & 0x7;
+			S_imm = ((instWord >> 5) & 0x3) | (((instWord >> 10) & 0x7) << 2);
+			cout << "\tC.SW\t" << abiName[rs2 + 8] << ", " << dec << (int)(CL_imm) << "(" << abiName[rs1 + 8] << ")" << "\n";
+			instWord = 0;
+			instWord = op | (((S_imm * 4) & 0x1F) << 7) | (funct3 << 12) | (rs1 << 15) | (rs2 << 20) | ((S_imm >> 5) << 25) | (S_imm >> 4 ? 0xFE000000 : 0x00000000);
+			instDecExec(instWord, 1);
+			return instWord;
+			break;
+
+		default:
+			break;
+		}
+	}
     else if (op == 0x2)
     { // CI -Format
         switch (funct3)
