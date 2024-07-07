@@ -1024,7 +1024,7 @@ int main(int argc, char *argv[]) // arguments for the data and input machine cod
             if (instWord == 0 || count > 65536)
                 break; // stop when PC reached address 65536
         }
-        printRegisterContents();
+        // printRegisterContents();
     }
     else
         emitError("Cannot access text file\n");
