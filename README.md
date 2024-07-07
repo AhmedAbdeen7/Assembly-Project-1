@@ -1,5 +1,5 @@
 
-<h2>Spring 2024 Project Report<h/>
+Spring 2024 Project Report
 
 Dr. Mohamed Shalan
 
@@ -43,12 +43,12 @@ How to Build the simulator
 
 
 
-<h>Steps on how to run the Simulator<h/>
+Steps on how to run the Simulator
 
 1. Open terminal at the folder that contains the rvsim.cpp file
 2. run: g++ rvsim.cpp -o rvsim.exe
 3. run: /rvsim.exe YourTestCase.bin (optional: datafile.bin)
-<h4>Steps on getting a correct .bin file<h4/>
+Steps on getting a correct .bin file
 
 1. Open [RARS]([url](https://github.com/TheThirdOne/rars))
 2. Write any code you want to test
