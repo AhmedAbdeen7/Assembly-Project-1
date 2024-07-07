@@ -498,6 +498,7 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
         instPC = pc - 4; // else subtract by 4 bytes so that it is behind the program counter by exactly one instruction
     }
 
+    // masking the components of the instruction word
     opcode = instWord & 0x0000007F;
     rd = (instWord >> 7) & 0x0000001F;
     funct3 = (instWord >> 12) & 0x00000007;
@@ -505,7 +506,6 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
     rs2 = (instWord >> 20) & 0x0000001F;
     funct7 = (instWord >> 25) & 0x0000007F;
     shamt = (instWord >> 20) & 0x0000001F;
-    // — inst[31] — inst[30:25] inst[24:21] inst[20]
     I_imm = ((instWord >> 20) & 0x7FF) | (((instWord >> 31) ? 0xFFFFF800 : 0x0));
     S_imm = ((instWord >> 7) & 0x1F) |   // imm[4:0]
             ((instWord >> 20) & 0xFE0) | // imm[11:5]
@@ -535,7 +535,7 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
         case 0:
             if (funct7 == 32)
             {
-                if (!compressed)
+                if (!compressed) // If not compressed, print the instruction. Otherwise, it will be printed in the decompress function
                 {
                     cout << "\tSUB\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
                 }
@@ -807,11 +807,11 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
         {
             cout << "\tECALL\n";
         }
-        if (reg[17] == 1)
+        if (reg[17] == 1) // Print integer
         {
             cout << dec << (int)reg[10] << "\n";
         }
-        else if (reg[17] == 4)
+        else if (reg[17] == 4) // Print string
         {
             int i = 0;
 
@@ -822,7 +822,7 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
             }
             cout << endl;
         }
-        else if (reg[17] == 10)
+        else if (reg[17] == 10) // Exit program
         {
             // printRegisterContents();
             exit(0);
@@ -880,13 +880,7 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
         }
         reg[rd] = instPC + (U_imm << 12);
     }
-    else if (opcode == 0x73)
-    { // ebreak (I -type)
-        if (!compressed)
-        {
-            cout << "\tEBREAK\t" << endl;
-        }
-    }
+
     else if (opcode == 0x63)
     {
         switch (funct3)
