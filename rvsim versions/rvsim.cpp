@@ -47,11 +47,11 @@ unsigned int deCompress(unsigned int instWord)
 {
 
     int decompressed_instruction = 0;
-    unsigned int rd, rs1, rs2, funct4, funct3, offset, op;
+    unsigned int rd_dash, rs1_dash, rs2_dash, funct4, funct3, offset, op;
     unsigned int CIW_imm, CL_imm, CI_imm;
-    unsigned int rd_5 = (instWord >> 7) & 0x0000001F;
-    unsigned int rs1_5 = (instWord >> 7) & 0x0000001F;
-    unsigned int rs2_5 = (instWord >> 2) & 0x0000001F;
+    unsigned int rd = (instWord >> 7) & 0x0000001F;
+    unsigned int rs1 = (instWord >> 7) & 0x0000001F;
+    unsigned int rs2 = (instWord >> 2) & 0x0000001F;
     op = instWord & 0x00000003;
     funct3 = (instWord >> 13) & 0x00000007;
     funct4 = (instWord >> 12) & 0x0000000F;
