@@ -7,7 +7,7 @@ Logic Circuits Simulator
   
 Islam M.Abdeen 900225835
 
-aly elaswad 900225517
+Aly Elaswad 900225517
 
 Ahmed M.Abdeen 900225815 
 
