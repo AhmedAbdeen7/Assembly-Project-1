@@ -53,12 +53,24 @@ How to Build the simulator
 Simulator Design
 Key Components: -
 
--Memory: It is an array of size (64 + 64)*1024 to simulate a 64kbyte memory
+-Memory: It is an array of size (64 + 64)*1024 to simulate the memory used in the assembler
+
 -Registers: It is an array of type unsigned int and of size 32 (The total number of registers) and there is another array to store the abiNames of those registers
+
 -Decoder/Executor: The function "instDecExec" takes the instruction word in machine code. Then, disassembles it and prints on the terminal
+
 -Decompressor: The function "deCompress" takes a 16 bit instruction. Then, it prints the compressed instruction and decompresses it into a 32 bit instrution to be passed in the instDecExec that would execute it.
+
 -Read stream: The intmain() function takes up to two arguments: the input file and data file. It then reads the contents of those files and stores them in the memory using their addresses as the index in the array
 
 Challenges and Limitations:-
-- One of the challenges was testing the load and store instructions. The store could be tested through loading, where we can store a value in the memory and then load it into a new register and then print the value. However, this would assume that the load instruction was executed properly, which was a plausible assumption. However, to make sure of the contents in the 
+Challenges: -
+- One of the challenges was testing the load and store instructions. The store could be tested through loading, where we can store a value in the memory and then load it into a new register and then print the value. However, this would assume that the load instruction was executed properly, which was a plausible assumption. However, to make sure of the contents in the registers, we created a function to print the contents in the registers after execution.
+
+- Another challenge was the process of merging the work of the group members where each group member had a number of instructions to work on, and some of the instructions of one group member depended on some instructions of another group member. Thus, the merging process took more time because proper testing might require more than one member to finish their work at the same time.
+
+- Limitations: -
+- The simulator does not support pseudo instructions. The simulator represents them in true instructions instead.
+- The simulator does not print lables. It prints the addresses of the lables
+- 
 
