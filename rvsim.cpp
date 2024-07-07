@@ -71,7 +71,7 @@ unsigned int deCompress(unsigned int instWord)
 			CIW_imm = (instWord >> 5) & 0x000000FF;
 			CIW_imm = (((CIW_imm & 0x02) >> 1) | ((CIW_imm & 0x01) << 1) | ((CIW_imm & 0x0C0) >> 4) | ((CIW_imm & 0x03c) << 2));
 			// Print
-			cout << "\tC.ADDI4SPN\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CIW_imm) << "\n";
+			cout << "\tC.ADDI4SPN\t" << abiName[rd_dash + 8] << ", " << dec << (int)(CIW_imm * 4) << "\n";
 			// WILL CHANGE WITH CONTROL SIGNAL
 			CIW_imm = CIW_imm << 2;
 			instWord = 0x00000013; // I-type
@@ -193,7 +193,7 @@ unsigned int deCompress(unsigned int instWord)
 					CI_imm |= 0xFFFFFE00;
 				}
 				int temp = CI_imm;
-				temp /= 16;
+
 				cout << "\tC.ADDI16SP\t" << abiName[rd] << ", " << dec << (int)(temp) << "\n";
 				instWord = 0;
 				instWord = 0x00010113;
@@ -838,7 +838,7 @@ void instDecExec(unsigned int instWord, bool compressed)
 	{ // U-type Instruction (Load Upper Immediate)
 		if (!compressed)
 		{
-			cout << "\tLUI\t" << abiName[rd] << ", " << dec << (int)(U_imm << 12) << "\n";
+			cout << "\tLUI\t" << abiName[rd] << ", 0x" << hex << (int)(U_imm) << "\n";
 		}
 		reg[rd] = U_imm << 12;
 	}
@@ -987,6 +987,8 @@ int main(int argc, char *argv[])
 					   (((unsigned char)memory[pc + 1]) << 8) |
 					   (((unsigned char)memory[pc + 2]) << 16) |
 					   (((unsigned char)memory[pc + 3]) << 24);
+			if (instWord == 0 || count > 65536)
+				break; // stop when PC reached address 32
 			if (isCompressed(instWord))
 			{
 				instWord = (unsigned char)memory[pc] |
