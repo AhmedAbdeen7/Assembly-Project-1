@@ -891,7 +891,7 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
                 cout << "\tBEQ\t" << abiName[rs1] << ", " << abiName[rs2] << ", " << hex << "0x" << instPC + (int)B_imm << "\n";
             }
             if (reg[rs1] == reg[rs2])
-                pc = instPC + B_imm;
+                pc = instPC + B_imm; // Jump to the address of the label
             break;
         case 1:
             if (!compressed)
@@ -955,9 +955,9 @@ void instDecExec(unsigned int instWord, bool compressed) // The decoder/executor
     {
         cout << "\tUnkown Instruction \n";
     }
-    reg[0] = 0;
+    reg[0] = 0; // The zero must always be zero
 }
-void printRegisterContents()
+void printRegisterContents() // To print the contents of the registers
 {
     for (int i = 0; i < 32; i++)
     {
@@ -965,14 +965,14 @@ void printRegisterContents()
     }
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char *argv[]) // arguments for the data and input machine codefiles
 {
     unsigned int instWord = 0;
     ifstream inFile;
     ifstream dataFile;
     ofstream outFile;
 
-    if (argc < 1)
+    if (argc < 1) // An error if the number of files is less than one
         emitError("use: rvcdiss <machine_code_file_name>\n");
 
     inFile.open(argv[1], ios::in | ios::binary | ios::ate);
@@ -980,7 +980,7 @@ int main(int argc, char *argv[])
     if (argc == 3)
         dataFile.open(argv[2], ios::in | ios::binary | ios::ate); // data section
 
-    if (inFile.is_open())
+    if (inFile.is_open()) // Reading from the data file and storing in the memory
     {
         int fsize = inFile.tellg();
         inFile.seekg(0, inFile.beg);
@@ -988,7 +988,7 @@ int main(int argc, char *argv[])
             emitError("Cannot read from text file\n");
     }
 
-    if (dataFile.is_open())
+    if (dataFile.is_open()) // Reading from the data file
     {
         int fsize = dataFile.tellg();
         dataFile.seekg(0, dataFile.beg);
