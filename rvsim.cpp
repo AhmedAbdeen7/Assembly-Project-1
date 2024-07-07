@@ -175,7 +175,7 @@ unsigned int deCompress(unsigned int instWord)
 			CI_imm = ((instWord >> 2) & 0x1F) | (((instWord >> 12) & 0x1) << 5);
 			if ((instWord >> 12) & 0x1)
 			{
-				CL_imm |= 0xFFFFFFC0;
+				CI_imm |= 0xFFFFFFE0;
 			}
 			cout << "\tC.LI\t" << abiName[rd] << ", " << dec << (int)CI_imm << "\n";
 			instWord = 0x13;
