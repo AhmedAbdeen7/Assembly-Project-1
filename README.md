@@ -2,6 +2,7 @@
 <h2>Spring 2024 Project Report<h/>
 
 Dr. Mohamed Shalan
+
 Logic Circuits Simulator
   
 Islam M.Abdeen 900225835
@@ -9,9 +10,16 @@ Islam M.Abdeen 900225835
 aly elaswad 900225517
 
 Ahmed M.Abdeen 900225815 
-CSCE 2301 </title>
+
+CSCE 2301
+
+
+
+
 
 Objective: Create an ISS for RISC-V RV32IC Base Integer Instruction Set with support for instruction compression.
+
+
 
 How to Build the simulator
 (1) Choose a suitable programming language (We chose c++)
@@ -72,5 +80,5 @@ Challenges: -
 - Limitations: -
 - The simulator does not support pseudo instructions. The simulator represents them in true instructions instead.
 - The simulator does not print lables. It prints the addresses of the lables
-- 
+  
 
