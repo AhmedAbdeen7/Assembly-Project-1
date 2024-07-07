@@ -588,7 +588,9 @@ void instDecExec(unsigned int instWord, bool compressed)
 				{
 					cout << "\tSRA\t" << abiName[rd] << ", " << abiName[rs1] << ", " << abiName[rs2] << "\n";
 				}
-				reg[rd] = reg[rs1] >> reg[rs2];
+				int rs1_value = static_cast<int32_t>(reg[rs1]);
+				unsigned int rs2_value = reg[rs2] & 0x1F; // Only the lower 5 bits are used for the shift amount
+				reg[rd] = rs1_value >> rs2_value;
 			}
 			else if (funct7 == 0)
 			{
@@ -685,7 +687,10 @@ void instDecExec(unsigned int instWord, bool compressed)
 				{
 					cout << "\tSRAI\t" << abiName[rd] << ", " << abiName[rs1] << ", " << dec << (int)shamt << "\n";
 				}
-				reg[rd] = reg[rs1] >> int(I_imm);
+				int rs1_value = static_cast<int>(reg[rs1]);
+				// unsigned int rs2_value = reg[rs2] & 0x1F; // Only the lower 5 bits are used for the shift amount
+				reg[rd] = rs1_value >> static_cast<unsigned int>(I_imm);
+				// reg[rd] = reg[rs1] >> int(I_imm);
 			}
 			else if (funct7 == 0)
 			{
