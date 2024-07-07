@@ -1,5 +1,5 @@
 
-<title>Spring 2024 Project Report
+<h2>Spring 2024 Project Report<h/>
 
 Dr. Mohamed Shalan
 Logic Circuits Simulator
